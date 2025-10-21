@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <!-- iOS / PWA (keep if you’re using Option A) -->
+  <link rel="apple-touch-icon" href="./logo-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="华强北款爱云校">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>网络异常</title>
+  <style>
+    :root{
+      --bg:#ebedf0;
+      --text:#0b0b0c;
+      --line:#e5e7eb;
+      --muted:#8f949c;
+      --coral:#e3645b;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    .app{
+      max-width:430px;
+      min-height:100dvh;
+      margin:auto;
+      background:var(--bg);
+      position:relative;
+      box-sizing:border-box;
+    }
+
+    /* Fixed title bar (unchanged) */
+    .titlebar{
+      position: fixed;
+      left: 0; right: 0;
+      height: 44px;
+      padding: 0 8px 0 calc(env(safe-area-inset-left) + 8px);
+      background: #ebedf0;
+      border-bottom: 1px solid var(--line);
+      z-index: 100;
+      top: 0;
+      top: env(safe-area-inset-top);
+      top: constant(safe-area-inset-top);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .titlebar::before{
+      content:"";
+      position:absolute; left:0; right:0;
+      top: calc(-1 * env(safe-area-inset-top));
+      height: env(safe-area-inset-top);
+      background: #ebedf0;
+      pointer-events: none;
+    }
+    @supports (-webkit-touch-callout: none) {
+      .titlebar::before{
+        top: calc(-1 * constant(safe-area-inset-top));
+        height: constant(safe-area-inset-top);
+      }
+    }
+    .tb-btn{width:44px; height:44px; display:grid; place-items:center; border:none; background:transparent;}
+    .title{font-size:17px; font-weight:600; letter-spacing:.3px}
+
+    /* Content layout: push below header + 40px gap; center everything */
+    .content{
+      padding-top: calc(44px + 40px + env(safe-area-inset-top));
+      padding-top: calc(44px + 40px); /* fallback */
+      text-align:center;
+      padding-left:16px; padding-right:16px;
+    }
+    .error-wrap{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    /* Mask-based error icon (weui) */
+    .weui--error-filled{
+      display:inline-block;
+      width:24px; height:24px;
+      --svg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' fill-rule='evenodd' d='M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10m-.763-15.864l.11 7.596h1.305l.11-7.596zm.759 10.967c.512 0 .902-.383.902-.882c0-.5-.39-.882-.902-.882a.88.88 0 0 0-.896.882c0 .499.396.882.896.882'/%3E%3C/svg%3E");
+      background-color: currentColor;
+      -webkit-mask-image: var(--svg);
+      mask-image: var(--svg);
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
+    }
+
+    /* Size/color helpers for the icon */
+    .icon-120{ width:120px; height:120px; }
+    .text-coral{ color:var(--coral); }
+
+    /* Headline & subtext (match screenshot) */
+    .err-title{
+      margin:18px 0 10px;
+      font-size:22px;
+      font-weight:600;
+      color:#000;
+      letter-spacing:.2px;
+    }
+    .err-sub{
+      margin:0;
+      font-size:14px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    /* Hide page scrollbar */
+    html, body{ -ms-overflow-style:none; scrollbar-width:none; }
+    html::-webkit-scrollbar, body::-webkit-scrollbar{ display:none; width:0; height:0; }
+  </style>
+</head>
+<body>
+  <main class="app">
+
+    <!-- Title bar -->
+    <div class="titlebar" role="banner">
+      <button class="tb-btn" aria-label="返回">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12.5 4.5L6.5 10l6 5.5"/>
+        </svg>
+      </button>
+      <div class="title">错误</div>
+      <button class="tb-btn" aria-label="更多">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#111" aria-hidden="true">
+          <circle cx="6" cy="12" r="1.8"></circle>
+          <circle cx="12" cy="12" r="1.8"></circle>
+          <circle cx="18" cy="12" r="1.8"></circle>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Top-aligned icon + texts -->
+    <div class="content" role="main">
+      <div class="error-wrap">
+        <span class="weui--error-filled icon-120 text-coral" aria-hidden="true"></span>
+
+        <h1 class="err-title">操作失败</h1>
+        <p class="err-sub">“网络异常!”</p>
+      </div>
+    </div>
+
+  </main>
+</body>
+</html>
