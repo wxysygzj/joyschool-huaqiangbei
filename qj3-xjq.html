@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<link rel="apple-touch-icon" href="./logo-180.png">
+<!-- iOS standalone / fullscreen-like -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="华强北款爱云校">
+
+<!-- Cross-platform PWA manifest -->
+<link rel="manifest" href="manifest.webmanifest">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>爱云校-学生请假管理</title>
+  <style>
+    :root{
+      --bg:#ebedf0;
+      --card:#ffffff;
+      --text:#0b0b0c;
+      --muted:#818892;           /* gray for bottom bar & “详情” */
+      --line:#e5e7eb;
+      --radius:6px;             /* smaller corners */
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    .app{
+      max-width:430px;
+      min-height:100svh;
+      margin:auto;
+      background:var(--bg);
+      position:relative;
+      padding-bottom:72px; /* space for bottom bar */
+      box-sizing:border-box;
+    }
+
+    /* Title bar */
+    .titlebar{
+      position:sticky; top:0;
+      height:44px;
+      padding:0 8px 0 calc(env(safe-area-inset-left) + 8px);
+      background:#ebedf0;
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--line);
+      z-index:19;
+    }
+    .tb-btn{width:44px; height:44px; display:grid; place-items:center; border:none; background:transparent;}
+    .title{font-size:17px; font-weight:600; letter-spacing:.3px}
+
+    .content{padding:10px 12px 20px 12px}
+
+    .chip{
+      margin:8px auto 0;
+      width:max-content;
+      font-size:12px;
+      color:#6b7280;
+      background:transparent;
+      padding:4px 10px;
+      border-radius:999px;
+    }
+
+    /* Cards: no shadow, smaller radius, thin border */
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:none;
+      border:0px solid var(--line);
+      padding:14px 14px 16px;
+      margin:10px 6px 16px;
+    }
+    .card h3{margin:0 0 8px 0; font-size:16px; line-height:1.3}
+
+    /* Plain-text “textbox” block inside card */
+    .textbox{
+      font-size:13px;           /* a little smaller */
+      color:#111;               /* all black */
+      line-height:1.6;
+      white-space:pre-line;     /* honor line breaks */
+    }
+
+    .detail{
+      margin-top:6px;
+      display:flex; align-items:center; justify-content:space-between;
+      padding-top:10px;
+      border-top:1px solid var(--line);
+      color:var(--muted);       /* gray text & arrow */
+      font-size:12px;
+      text-decoration:none;
+    }
+
+    /* Bottom bar */
+    .tabs{
+      position:fixed; left:0; right:0; bottom:0;
+      display:grid; grid-template-columns:auto 1fr;
+      align-items:center;
+      background:#fff;
+      padding:10px calc(env(safe-area-inset-right) + 12px) calc(env(safe-area-inset-bottom) + 10px) calc(env(safe-area-inset-left) + 12px);
+      border-top:1px solid var(--line);
+      z-index:30;
+    }
+
+    .tabs-left{display:flex; align-items:center; gap:12px}
+    .tabs-left .divider{width:1px; height:36px; background:var(--line)}
+    .tabs-left svg{width:28px; height:28px; display:block}
+
+    .tabs-right{
+      display:grid; grid-template-columns:1fr 1fr 1fr;
+      align-items:center; height:100%;
+      color:var(--muted); font-size:13px; text-align:center;
+    }
+    .tabs-right a{
+      color:#111;
+      text-decoration:none;
+      padding:8px 0; display:block;
+    }
+    .tabs-right a + a{border-left:1px solid var(--line)}
+
+/* Keep the head bar fixed but only 44px tall */
+.titlebar{
+  position: fixed;
+  left: 0; right: 0;
+  height: 44px;                         /* fixed height */
+  padding: 0 8px 0 calc(env(safe-area-inset-left) + 8px);
+  background: #ebedf0;
+  border-bottom: 1px solid var(--line);
+  z-index: 100;
+
+  /* place it just below the status bar / notch */
+  top: 0;                                /* fallback */
+  top: env(safe-area-inset-top);         /* modern iOS */
+  top: constant(safe-area-inset-top);    /* very old iOS */
+}
+
+/* Push the content below the fixed bar */
+.content{
+  padding-top: calc(44px + 10px);        /* fallback */
+  padding-top: calc(44px + 10px + env(safe-area-inset-top));
+  padding-top: calc(44px + 10px + constant(safe-area-inset-top));
+}
+
+/* Fill the top safe-area so content never shows there while scrolling */
+.titlebar::before{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  /* place a strip ABOVE the 44px titlebar to cover the safe area */
+  top: calc(-1 * env(safe-area-inset-top));
+  height: env(safe-area-inset-top);
+  background: #ebedf0;             /* same as your header bg */
+  pointer-events: none;
+}
+
+/* (optional older iOS fallback) */
+@supports (-webkit-touch-callout: none) {
+  .titlebar::before{
+    top: calc(-1 * constant(safe-area-inset-top));
+    height: constant(safe-area-inset-top);
+  }
+}
+
+/* Hide page scrollbar (keeps scrolling) */
+html, body{
+  -ms-overflow-style: none;   /* IE/old Edge */
+  scrollbar-width: none;      /* Firefox */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar{
+  display: none;              /* Chrome/Safari/iOS */
+  width: 0; height: 0;
+}
+
+  </style>
+</head>
+<body>
+  <main class="app">
+
+    <!-- Head bar -->
+    <div class="titlebar" role="banner">
+      <button class="tb-btn" aria-label="返回">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12.5 4.5L6.5 10l6 5.5"/>
+        </svg>
+      </button>
+      <div class="title">爱云校-学生请假管理</div>
+      <button class="tb-btn" aria-label="更多">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#111" aria-hidden="true">
+          <circle cx="6" cy="12" r="1.8"></circle>
+          <circle cx="12" cy="12" r="1.8"></circle>
+          <circle cx="18" cy="12" r="1.8"></circle>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="content" role="main">
+      <div class="chip">10月10日 8:12</div>
+
+      <section class="card" aria-label="通过通知 1">
+        <h3>谢景琦同学请假申请已通过,点击详情可查看！</h3>
+
+        <!-- Plain text block -->
+        <div class="textbox">姓名：谢景琦
+班级：国际部高三 Grade12 高23级IB班
+请假时段：2025-10-10 第10节 ~ 2025-10-10 第10节
+请假类型：事假
+是否离校：离校
+请假事由：提前回家
+操作人：张帆
+        </div>
+
+        <a class="detail" href="javascript:void(0)" aria-label="查看详情 1">
+          <span>详情</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 4l8 8-8 8"/>
+          </svg>
+        </a>
+      </section>
+
+      <div class="chip">星期一 8:10</div>
+
+      <section class="card" aria-label="通过通知 1">
+        <h3>谢景琦同学请假申请已通过,点击详情可查看！</h3>
+
+        <!-- Plain text block -->
+        <div class="textbox">姓名：谢景琦
+班级：国际部高三 Grade12 高23级IB班
+请假时段：2025-10-20 第1节 ~ 2025-10-20 第1节
+请假类型：病假
+是否离校：不离校
+请假事由：在宿舍休息
+操作人：张帆
+        </div>
+
+        <a class="detail" href="javascript:void(0)" aria-label="查看详情 1">
+          <span>详情</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 4l8 8-8 8"/>
+          </svg>
+        </a>
+      </section>
+
+      <div class="chip">15:45</div>
+
+      <section class="card" aria-label="通过通知 2">
+        <h3>谢景琦同学请假申请已通过,点击详情可查看！</h3>
+
+        <!-- Plain text block -->
+        <div class="textbox">姓名：谢景琦
+班级：国际部高三 Grade12 高23级IB班
+请假时段：2025-10-25 第1节 ~ 2025-10-25 第10节
+请假类型：事假
+是否离校：离校
+请假事由：项目小学段 在家自习
+操作人：张帆
+        </div>
+
+        <a class="detail" href="javascript:void(0)" aria-label="查看详情 2">
+          <span>详情</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 4l8 8-8 8"/>
+          </svg>
+        </a>
+      </section>
+    </div>
+
+    <!-- Bottom bar -->
+    <nav class="tabs" role="navigation" aria-label="底部导航">
+      <div class="tabs-left" aria-hidden="true">
+        <!-- inline icon (icon1.html) -->
+        <svg viewBox="0 0 100 100" role="img" aria-label="icon">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="#111" stroke-width="6" />
+          <polygon points="50,26 42,40 58,40" fill="#111"/>
+          <g fill="#111">
+            <circle cx="28" cy="55" r="4"/>
+  <circle cx="42" cy="55" r="4"/>
+  <circle cx="56" cy="55" r="4"/>
+  <circle cx="70" cy="55" r="4"/>
+  <circle cx="28" cy="68" r="4"/>
+  <circle cx="42" cy="68" r="4"/>
+  <circle cx="56" cy="68" r="4"/>
+  <circle cx="70" cy="68" r="4"/>
+          </g>
+        </svg>
+        <div class="divider"></div>
+      </div>
+
+      <div class="tabs-right">
+        <a href="#">请假申请</a>
+        <a href="#">请假审批</a>
+        <a href="#">请假记录</a>
+      </div>
+    </nav>
+
+  </main>
+</body>
+</html>
